@@ -1,9 +1,8 @@
 import tkinter as tk
-
 from gamelib import Sprite, GameApp, Text
-
 from dir_consts import *
 from maze import Maze
+import random
 
 CANVAS_WIDTH = 800
 CANVAS_HEIGHT = 600
@@ -11,6 +10,16 @@ CANVAS_HEIGHT = 600
 UPDATE_DELAY = 33
 
 PACMAN_SPEED = 5
+
+
+class NormalPacmanState:
+    def __init__(self, pacman):
+        self.pacman = pacman
+
+
+class SuperPacmanState:
+    def __init__(self, pacman):
+        self.pacman = pacman
 
 
 class Pacman(Sprite):
@@ -21,6 +30,8 @@ class Pacman(Sprite):
 
         self.direction = DIR_STILL
         self.next_direction = DIR_STILL
+        self.is_super_speed = False
+        self.super_speed_counter = 0
 
         x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/pacman.png', x, y)
@@ -31,14 +42,25 @@ class Pacman(Sprite):
 
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
+                if random.random() < 0.1:
+                    if not self.is_super_speed:
+                        self.is_super_speed = True
+                        self.super_speed_counter = 0
 
             if self.maze.is_movable_direction(r, c, self.next_direction):
                 self.direction = self.next_direction
             else:
                 self.direction = DIR_STILL
+        if self.is_super_speed:
+            speed = 2 * PACMAN_SPEED
+            self.super_speed_counter += 1
+            if self.super_speed_counter > 50:
+                self.is_super_speed = False
+        else:
+            speed = PACMAN_SPEED
 
-        self.x += PACMAN_SPEED * DIR_OFFSET[self.direction][0]
-        self.y += PACMAN_SPEED * DIR_OFFSET[self.direction][1]
+        self.x += speed * DIR_OFFSET[self.direction][0]
+        self.y += speed * DIR_OFFSET[self.direction][1]
 
     def set_next_direction(self, direction):
         self.next_direction = direction
