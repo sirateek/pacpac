@@ -12,6 +12,7 @@ UPDATE_DELAY = 33
 
 PACMAN_SPEED = 5
 
+
 class Pacman(Sprite):
     def __init__(self, app, maze, r, c):
         self.r = r
@@ -21,7 +22,7 @@ class Pacman(Sprite):
         self.direction = DIR_STILL
         self.next_direction = DIR_STILL
 
-        x, y = maze.piece_center(r,c)
+        x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/pacman.png', x, y)
 
     def update(self):
@@ -30,7 +31,7 @@ class Pacman(Sprite):
 
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
-            
+
             if self.maze.is_movable_direction(r, c, self.next_direction):
                 self.direction = self.next_direction
             else:
@@ -48,7 +49,8 @@ class PacmanGame(GameApp):
         self.maze = Maze(self, CANVAS_WIDTH, CANVAS_HEIGHT)
 
         self.pacman1 = Pacman(self, self.maze, 1, 1)
-        self.pacman2 = Pacman(self, self.maze, self.maze.get_height() - 2, self.maze.get_width() - 2)
+        self.pacman2 = Pacman(
+            self, self.maze, self.maze.get_height() - 2, self.maze.get_width() - 2)
 
         self.pacman1_score_text = Text(self, 'P1: 0', 100, 20)
         self.pacman2_score_text = Text(self, 'P2: 0', 600, 20)
@@ -56,35 +58,36 @@ class PacmanGame(GameApp):
         self.elements.append(self.pacman1)
         self.elements.append(self.pacman2)
 
+        self.command_map = {
+            'W': self.get_pacman_next_direction_function(self.pacman1, DIR_UP),
+            'A': self.get_pacman_next_direction_function(self.pacman1, DIR_LEFT),
+            'S': self.get_pacman_next_direction_function(self.pacman1, DIR_DOWN),
+            'D': self.get_pacman_next_direction_function(self.pacman1, DIR_RIGHT),
+            'J': self.get_pacman_next_direction_function(self.pacman2, DIR_LEFT),
+            'I': self.get_pacman_next_direction_function(self.pacman2, DIR_UP),
+            'K': self.get_pacman_next_direction_function(self.pacman2, DIR_DOWN),
+            'L': self.get_pacman_next_direction_function(self.pacman2, DIR_RIGHT),
+        }
+
     def pre_update(self):
         pass
 
     def post_update(self):
         pass
 
-    def on_key_pressed(self, event):
-        if event.char.upper() == 'A':
-            self.pacman1.set_next_direction(DIR_LEFT)
-        elif event.char.upper() == 'W':
-            self.pacman1.set_next_direction(DIR_UP)
-        elif event.char.upper() == 'S':
-            self.pacman1.set_next_direction(DIR_DOWN)
-        elif event.char.upper() == 'D':
-            self.pacman1.set_next_direction(DIR_RIGHT)
+    def get_pacman_next_direction_function(self, pacman, next_direction):
+        return lambda: pacman.set_next_direction(next_direction)
 
-        if event.char.upper() == 'J':
-            self.pacman2.set_next_direction(DIR_LEFT)
-        elif event.char.upper() == 'I':
-            self.pacman2.set_next_direction(DIR_UP)
-        elif event.char.upper() == 'K':
-            self.pacman2.set_next_direction(DIR_DOWN)
-        elif event.char.upper() == 'L':
-            self.pacman2.set_next_direction(DIR_RIGHT)
+    def on_key_pressed(self, event):
+        ch = event.char.upper()
+        if self.command_map.get(ch, "") != "":
+            self.command_map[ch]()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Monkey Banana Game")
- 
+
     # do not allow window resizing
     root.resizable(False, False)
     app = PacmanGame(root, CANVAS_WIDTH, CANVAS_HEIGHT, UPDATE_DELAY)
