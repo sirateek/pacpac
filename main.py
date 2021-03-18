@@ -12,14 +12,46 @@ UPDATE_DELAY = 33
 PACMAN_SPEED = 5
 
 
-class NormalPacmanState:
+class PacmanState:
     def __init__(self, pacman):
+        self.pacman_speed = PACMAN_SPEED
         self.pacman = pacman
 
+    def random_upgrade(self):
+        pass
 
-class SuperPacmanState:
-    def __init__(self, pacman):
-        self.pacman = pacman
+    def move_pacman(self):
+        pass
+
+
+class NormalPacmanState(PacmanState):
+    def random_upgrade(self):
+        if random.random() < 0.1:
+            self.pacman.state = SuperPacmanState(self.pacman)
+
+    def move_pacman(self):
+        self.pacman.x += self.pacman_speed * \
+            DIR_OFFSET[self.pacman.direction][0]
+        self.pacman.y += self.pacman_speed * \
+            DIR_OFFSET[self.pacman.direction][1]
+
+
+class SuperPacmanState(PacmanState):
+    def __init__(self, pacman, super_speed=2):
+        super().__init__(pacman)
+        self.super_speed = super_speed
+        self.count = 0
+
+    def move_pacman(self):
+        if self.count > 50:
+            self.count = 0
+            self.pacman.state = NormalPacmanState(self.pacman)
+            return
+        self.count += 1
+        self.pacman.x += self.super_speed * self.pacman_speed * \
+            DIR_OFFSET[self.pacman.direction][0]
+        self.pacman.y += self.super_speed * self.pacman_speed * \
+            DIR_OFFSET[self.pacman.direction][1]
 
 
 class Pacman(Sprite):
@@ -27,11 +59,9 @@ class Pacman(Sprite):
         self.r = r
         self.c = c
         self.maze = maze
-
         self.direction = DIR_STILL
         self.next_direction = DIR_STILL
-        self.is_super_speed = False
-        self.super_speed_counter = 0
+        self.state = NormalPacmanState(self)
 
         x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/pacman.png', x, y)
@@ -42,25 +72,10 @@ class Pacman(Sprite):
 
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
-                if random.random() < 0.1:
-                    if not self.is_super_speed:
-                        self.is_super_speed = True
-                        self.super_speed_counter = 0
-
-            if self.maze.is_movable_direction(r, c, self.next_direction):
-                self.direction = self.next_direction
-            else:
-                self.direction = DIR_STILL
-        if self.is_super_speed:
-            speed = 2 * PACMAN_SPEED
-            self.super_speed_counter += 1
-            if self.super_speed_counter > 50:
-                self.is_super_speed = False
-        else:
-            speed = PACMAN_SPEED
-
-        self.x += speed * DIR_OFFSET[self.direction][0]
-        self.y += speed * DIR_OFFSET[self.direction][1]
+                self.state.random_upgrade()
+            self.direction = self.next_direction if self.maze.is_movable_direction(
+                r, c, self.next_direction) else DIR_STILL
+        self.state.move_pacman()
 
     def set_next_direction(self, direction):
         self.next_direction = direction
