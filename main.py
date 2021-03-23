@@ -21,7 +21,6 @@ class Pacman(Sprite):
         self.dot_eaten_observers = []
         self.direction = DIR_STILL
         self.next_direction = DIR_STILL
-
         x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/pacman.png', x, y)
 
@@ -31,7 +30,6 @@ class Pacman(Sprite):
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
                 self.dot_eaten_observers.append(self.maze.eat_dot_at(r, c))
-
             if self.maze.is_movable_direction(r, c, self.next_direction):
                 self.direction = self.next_direction
             else:
