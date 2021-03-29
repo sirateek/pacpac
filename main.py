@@ -32,7 +32,6 @@ class Pacman(Sprite):
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
 
-
             if self.maze.is_movable_direction(r, c, self.next_direction):
                 self.direction = self.next_direction
             else:
@@ -41,12 +40,11 @@ class Pacman(Sprite):
         self.x += PACMAN_SPEED * DIR_OFFSET[self.direction][0]
         self.y += PACMAN_SPEED * DIR_OFFSET[self.direction][1]
 
-                self.dot_eaten_observers.append(self.maze.eat_dot_at(r, c))
-                self.state.random_upgrade()
-            self.direction = self.next_direction if self.maze.is_movable_direction(
-                r, c, self.next_direction) else DIR_STILL
+        self.dot_eaten_observers.append(self.maze.eat_dot_at(r, c))
+        self.state.random_upgrade()
+        self.direction = self.next_direction if self.maze.is_movable_direction(
+            r, c, self.next_direction) else DIR_STILL
         self.state.move_pacman()
-
 
     def set_next_direction(self, direction):
         self.next_direction = direction
